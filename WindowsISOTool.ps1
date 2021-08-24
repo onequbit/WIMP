@@ -1,11 +1,3 @@
-###########################################################################################################################################
-###
-### 20210608 - Great Success!!!
-###
-### oscdimg -u2 -m -bc:\wim_mount\draft\efi\microsoft\boot\efisys.bin c:\WIM_mount\draft c:\users\AlfredA\Desktop\testiso1.iso
-###
-###########################################################################################################################################
-
 
 function Debug-WIMPanic
 {
@@ -316,40 +308,6 @@ function Get-WIMBuildNumber
     return $wim_image_info.Version.Split('.')[2]
 }
 
-# OSDUpdate module looked promising, and it indeed downloads the updates, 
-# but there is no clear way to actually install the update manually.  :(
-
-# $OSDUpdateModule = $false
-# function Get-OSDUpdateModule
-# {
-#     $module = Get-Module "OSDUpdate"
-#     $OSDUpdateModule = $null -ne $module
-#     if ($null -eq $module -or $OSDUpdateModule -eq $false)
-#     {
-#         Write-TextBanner "This script needs the OSDUpdate PowerShell module to obtain Windows updates"
-#         try {
-#             Install-Module -Name "OSDUpdate"
-#         } catch {
-#             Write-Verbose $_ -Verbose
-#             Write-TextBanner "Could not install OSDUpdate PowerShell module, updates will not be available"
-#         }
-#     }    
-# }
-
-# function Get-WindowsUpdates
-# {
-#     param(
-#         [parameter(Mandatory)] [string] $VersionCode,
-#         [parameter(Mandatory)] [string] $DownloadPath
-#     )
-#     try {
-#         Get-OSDUpdate | Where-Object {$_.UpdateOS -eq 'Windows 10' -and $_.UpdateArch -eq 'x64' -and $_.UpdateBuild -eq $VersionCode } | Get-DownOSDUpdate -DownloadPath $DownloadPath    
-#     }
-#     catch {
-#         Write-Verbose $_ -Verbose
-#     }    
-# }
-
 function Remove-MSBloatWare
 {
     param(
@@ -550,16 +508,28 @@ catch {
 Write-Host "Verifying required files(s)"
 
 $iso_writer_path = Get-RequiredFile -Path ".\" -Filename "oscdimg.exe"
-$DesiredUnattendFile = Get-RequiredFile -Path ".\" -Filename "unattend_Carbyne_20210621.xml"
-# if (!$OSDUpdateModule)
-# {
-#     Write-TextBanner -Text "Using OSDUpdate module to retreive updates for this build"
-#     Get-OSDUpdateModule
-# }
 
-Write-TextBanner -Text "Required files verified"
+Write-TextBanner -Text "Required file verified"
 
+########################################################################################################
 
+### Get the unattended answer file
+
+Write-Host "Select the unattended answer file"
+
+try {
+    $DesiredUnattendFile = FilePicker -Extension "xml" -Title "Select the Unattended Answer File"
+    if (!($DesiredUnattendFile))
+    {
+        throw "Unattend file not selected"
+    }
+    Write-TextBanner -Text "Unattend file: $DesiredUnattendFile"        
+    
+}
+catch {
+    Write-Verbose $_ -Verbose
+    throw "failed to identify unattend file"
+}
 
 ########################################################################################################
 
@@ -579,6 +549,7 @@ catch {
     Write-Verbose $_ -Verbose
     throw "failed to identify source ISO to be customized"
 }
+
 
 ########################################################################################################
 
